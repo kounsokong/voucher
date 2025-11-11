@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voucher - Print Preview</title>
+  <style>
+    :root{
+      --red:#e53935;
+      --purple:#6a1b9a;
+      --text:#111;
+      --muted:#666;
+      --border:#ddd;
+      --paper-bg: #fff;
+      --font-stack: "Khmer OS Battambang", "Noto Sans", Arial, sans-serif;
+    }
+    html,body{height:100%;}
+    body{
+      font-family:var(--font-stack);
+      margin:0;
+      color:var(--text);
+      background:#f4f6f8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:20px;
+    }
+
+    .invoice-wrap{
+      max-width:210mm;
+      min-height:297mm;
+      margin:0 auto;
+      background:var(--paper-bg);
+      box-shadow:0 6px 18px rgba(20,20,20,0.08);
+      border-radius:8px;
+      overflow:hidden;
+      padding:20mm;
+      box-sizing:border-box;
+    }
+
+    .print-button{
+      position:fixed;
+      top:20px;
+      right:20px;
+      background:var(--purple);
+      color:#fff;
+      border:none;
+      padding:12px 24px;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:600;
+      box-shadow:0 4px 12px rgba(106,27,154,0.3);
+      z-index:1000;
+    }
+    .print-button:hover{
+      background:#7b1fa2;
+    }
+
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      border-bottom:1px solid var(--border);
+      padding-bottom:18px;
+    }
+    .header-left{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .logo{
+      width:140px;
+      height:70px;
+      object-fit:contain;
+    }
+    .company-info h1{
+      margin:0;
+      font-size:20px;
+      line-height:1.05;
+    }
+    .company-info p{margin:2px 0;color:var(--muted);font-size:13px}
+
+    .invoice-meta{
+      text-align:right;
+      margin-left:auto;
+    }
+    .invoice-meta .title{font-weight:700;color:var(--purple);font-size:16px}
+    .meta-row{font-size:13px;color:var(--muted);margin-top:6px}
+
+    .info-row{display:flex;gap:16px;margin:18px 0 6px 0;}
+    .box{flex:1;background:#fff;border:1px solid var(--border);padding:12px 14px;border-radius:6px;}
+    .box.no-border{border:none}
+    .box h4{margin:0 0 6px 0;font-size:13px}
+    .box p{margin:0;color:var(--muted);font-size:13px;line-height:1.6;}
+
+    table.items{width:100%;border-collapse:collapse;margin-top:14px;}
+    table.items thead th{text-align:left;border-bottom:2px solid var(--border);padding:10px 8px;font-size:13px;color:var(--muted);}
+    table.items tbody td{padding:10px 8px;border-bottom:1px dashed #e9e9e9;font-size:14px;}
+    .text-right{text-align:right}
+    .text-center{text-align:center}
+
+    .totals{margin-top:12px;display:flex;justify-content:flex-end;}
+    .totals .table{width:320px;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:#fff;}
+    .totals .row{display:flex;justify-content:space-between;padding:10px 12px;border-bottom:1px dashed #eee}
+    .totals .row.total{font-weight:700;background:#f9f9f9;}
+
+    .signatures{display:flex;gap:30px;margin-top:40px;align-items:flex-end;}
+    .sig{flex:1;min-height:90px;border-top:1px solid var(--border);padding-top:8px;text-align:center;color:var(--muted);font-size:13px;}
+
+    .footer{margin-top:20px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+
+    @media print{
+      body{background:#fff;padding:0}
+      .invoice-wrap{box-shadow:none;border-radius:0;padding:20mm;min-height:auto;}
+      .header{border-bottom:1px solid #bbb}
+      .print-button{display:none}
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+    @media (max-width:720px){
+      .header{flex-direction:column;align-items:flex-start}
+      .invoice-meta{text-align:left;min-width:auto;margin-top:8px}
+      .info-row{flex-direction:column}
+      .totals{justify-content:flex-start}
+      .totals .table{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <button class="print-button" onclick="window.print()">🖨️ Print Voucher</button>
+
+  <div class="invoice-wrap" role="document">
+
+    <div class="header">
+      <div class="header-left">
+        <img src="logo.png" alt="Company Logo" class="logo" onerror="this.style.display='none'" />
+      </div>
+      <div class="invoice-meta">
+        <div class="title" id="voucher_type">Payment Voucher</div>
+        <div class="meta-row">Voucher No: <strong id="voucher_no">-</strong></div>
+        <div class="meta-row">Date: <strong id="voucher_date">-</strong></div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="box">
+        <h4>Account</h4>
+        <p>Account: <span id="account">-</span></p>
+        <p>Payment Method: <span id="payment_method">-</span></p>
+        <p>Ref#: <span id="ref">-</span></p>
+        <p>Amount: <span id="top_amount">-</span></p>
+      </div>
+      <div class="box no-border" style="min-width:200px;flex:0 0 220px;">
+        <h4>Requested by</h4>
+        <p>Name: <span id="requested_by">-</span></p>
+        <p>Requested at: <span id="created_at">-</span></p><br>
+        <p>Approved by: <span id="approved_by">-</span></p>
+        <p>Approved at: <span id="approved_at">-</span></p>
+      </div>
+    </div>
+
+    <table class="items" aria-label="Invoice items">
+      <thead>
+        <tr>
+          <th style="width:6%">#</th>
+          <th style="width:40%">Description</th>
+          <th style="width:12%" class="text-center">Ref#</th>
+          <th style="width:12%" class="text-right">Amount</th>
+          <th style="width:22%" class="text-right">Notes</th>
+        </tr>
+      </thead>
+      <tbody id="line_items">
+        <!-- Line items will be populated here -->
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="table" role="table">
+        <div class="row total"><div>Total</div><div class="text-right" id="total_amount">$0.00</div></div>
+      </div>
+    </div>
+    
+    <div style="margin-top:18px;font-size:13px;color:var(--muted)"><strong><p>Notes: <span id="notes">-</span></p></div>
+
+    <div class="signatures">
+      <div class="sig">Account's Signature</div>
+      <div class="sig">Manager's Signature</div>
+    </div>
+
+    <div class="footer">Angkoboia Logistic</div>
+
+  </div>
+
+  <script>
+    // Function to get URL parameters
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const data = {};
+      for (const [key, value] of params) {
+        data[key] = decodeURIComponent(value);
+      }
+      return data;
+    }
+
+    // Function to format currency
+    function formatCurrency(amount) {
+      if (!amount || amount === '-') return '-';
+      const num = parseFloat(amount);
+      if (isNaN(num)) return amount;
+      return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Function to populate the voucher
+    function populateVoucher() {
+      const params = getUrlParams();
+      
+      // Populate header fields
+      document.getElementById('voucher_type').textContent = params.voucher_type || 'Payment Voucher';
+      document.getElementById('voucher_no').textContent = params.voucher_no || '-';
+      document.getElementById('voucher_date').textContent = params.voucher_date || '-';
+      
+      // Populate account info
+      document.getElementById('account').textContent = params.account || '-';
+      document.getElementById('payment_method').textContent = params.payment_method || '-';
+      document.getElementById('ref').textContent = params.ref || '-';
+      document.getElementById('top_amount').textContent = formatCurrency(params.amount);
+      document.getElementById('notes').textContent = params.notes || '-';
+      
+      // Populate requested/approved info
+      document.getElementById('requested_by').textContent = params.requested_by || '-';
+      document.getElementById('created_at').textContent = params.created_at || '-';
+      document.getElementById('approved_by').textContent = params.approved_by || '-';
+      document.getElementById('approved_at').textContent = params.approved_at || '-';
+      
+      // Populate line items
+      populateLineItems(params);
+      
+      // Calculate and display total
+      calculateTotal(params);
+    }
+
+    // Function to populate line items
+    function populateLineItems(params) {
+      const tbody = document.getElementById('line_items');
+      tbody.innerHTML = '';
+      
+      // Check if we have line items data
+      // AppSheet can send multiple items using indexed parameters like:
+      // item_1_description, item_1_amount, item_2_description, etc.
+      
+      let itemIndex = 1;
+      let hasItems = false;
+      
+      while (params[`item_${itemIndex}_description`] || params[`description_${itemIndex}`]) {
+        hasItems = true;
+        const row = document.createElement('tr');
+        
+        const description = params[`item_${itemIndex}_description`] || params[`description_${itemIndex}`] || '-';
+        const refNo = params[`item_${itemIndex}_ref`] || params[`request_no_${itemIndex}`] || params[`invoice_no_${itemIndex}`] || '-';
+        const amount = params[`item_${itemIndex}_amount`] || params[`amount_${itemIndex}`] || '0';
+        const notes = params[`item_${itemIndex}_notes`] || params[`notes_${itemIndex}`] || '-';
+        
+        row.innerHTML = `
+          <td>${itemIndex}</td>
+          <td>${description}</td>
+          <td class="text-center">${refNo}</td>
+          <td class="text-right">${formatCurrency(amount)}</td>
+          <td class="text-left">${notes}</td>
+        `;
+        
+        tbody.appendChild(row);
+        itemIndex++;
+      }
+      
+      // If no items found in indexed format, create a single item from main params
+      if (!hasItems) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>1</td>
+          <td>${params.description || '-'}</td>
+          <td class="text-center">${params.request_no || params.invoice_no || '-'}</td>
+          <td class="text-right">${formatCurrency(params.amount)}</td>
+          <td class="text-left">${params.item_notes || '-'}</td>
+        `;
+        tbody.appendChild(row);
+      }
+    }
+
+    // Function to calculate total
+    function calculateTotal(params) {
+      let total = 0;
+      let itemIndex = 1;
+      
+      // Sum up all line items
+      while (params[`item_${itemIndex}_amount`] || params[`amount_${itemIndex}`]) {
+        const amount = parseFloat(params[`item_${itemIndex}_amount`] || params[`amount_${itemIndex}`] || 0);
+        if (!isNaN(amount)) {
+          total += amount;
+        }
+        itemIndex++;
+      }
+      
+      // If no line items, use the main amount
+      if (itemIndex === 1 && params.amount) {
+        total = parseFloat(params.amount) || 0;
+      }
+      
+      document.getElementById('total_amount').textContent = formatCurrency(total);
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', populateVoucher);
+  </script>
+</body>
+</html>
