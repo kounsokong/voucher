@@ -245,10 +245,28 @@
       const tbody = document.getElementById('line_items');
       tbody.innerHTML = '';
       
-      // Check if we have line items data
-      // AppSheet can send multiple items using indexed parameters like:
-      // item_1_description, item_1_amount, item_2_description, etc.
+      // Try to parse JSON items first (if AppSheet sends as JSON array)
+      if (params.items) {
+        try {
+          const items = JSON.parse(params.items);
+          items.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${item.description || '-'}</td>
+              <td class="text-center">${item.ref || item.request_no || item.invoice_no || '-'}</td>
+              <td class="text-right">${formatCurrency(item.amount)}</td>
+              <td class="text-left">${item.notes || '-'}</td>
+            `;
+            tbody.appendChild(row);
+          });
+          return;
+        } catch (e) {
+          console.log('Items is not valid JSON, trying other formats');
+        }
+      }
       
+      // Check for indexed parameters: item_1_description, item_2_description, etc.
       let itemIndex = 1;
       let hasItems = false;
       
@@ -281,7 +299,7 @@
           <td>${params.description || '-'}</td>
           <td class="text-center">${params.request_no || params.invoice_no || '-'}</td>
           <td class="text-right">${formatCurrency(params.amount)}</td>
-          <td class="text-left">${params.item_notes || '-'}</td>
+          <td class="text-left">${params.item_notes || params.notes || '-'}</td>
         `;
         tbody.appendChild(row);
       }
