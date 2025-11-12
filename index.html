@@ -152,10 +152,10 @@
         <p>Ref#: <span id="ref">-</span></p>
       </div>
       <div class="box no-border" style="min-width:200px;flex:0 0 220px;">
-        <p>Requested by: <span id="requested_by"></span></p>
-        <p>Requested at: <span id="created_at"></span></p><br>
-        <p>Approved by: <span id="approved_by"></span></p>
-        <p>Approved at: <span id="approved_at"></span></p>
+        <p>Requested by: <span id="requested_by">-</span></p>
+        <p>Requested at: <span id="created_at">-</span></p><br>
+        <p>Approved by: <span id="approved_by">-</span></p>
+        <p>Approved at: <span id="approved_at">-</span></p>
       </div>
     </div>
 
@@ -180,7 +180,9 @@
       </div>
     </div>
     
-    <div style="margin-top:18px;font-size:13px;color:var(--muted)"><strong><p>Notes: <span id="notes">-</span></p></div>
+    <div style="margin-top:18px;font-size:13px;color:var(--muted)">
+      <strong>Notes:</strong> <span id="notes">-</span>
+    </div>
 
     <div class="signatures">
       <div class="sig">Account's Signature</div>
@@ -223,7 +225,6 @@
       document.getElementById('account').textContent = params.account || '-';
       document.getElementById('payment_method').textContent = params.payment_method || '-';
       document.getElementById('ref').textContent = params.ref || '-';
-      document.getElementById('top_amount').textContent = formatCurrency(params.amount);
       document.getElementById('notes').textContent = params.notes || '-';
       
       // Populate requested/approved info
